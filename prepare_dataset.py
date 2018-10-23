@@ -46,24 +46,24 @@ subprocess.check_call(
 #main dataset preparation
 for dataset in datasets[1:]:
     subprocess.check_call(
-    [
-        'python', im2rec_path,
-        '--list',
-        '--recursive',
-        '--num-thread', '4',
-        os.path.join(output_path, dataset['name']),
-        dataset['path']
-    ],
-    stderr=subprocess.STDOUT
-)
+        [
+            'python', im2rec_path,
+            '--list',
+            '--recursive',
+            '--num-thread', '4',
+            os.path.join(output_path, dataset['name']),
+            dataset['path']
+        ],
+        stderr=subprocess.STDOUT
+    )
     #generate binary and .idx files
-subprocess.check_call(
-    [
-        'python', im2rec_path,
-        '--num-thread', '4',
-        '--pass-through',
-        os.path.join(output_path, dataset['name']),
-        dataset['path']
-    ],
-    stderr=subprocess.STDOUT
-) 
+    subprocess.check_call(
+        [
+            'python', im2rec_path,
+            '--num-thread', '4',
+            '--pass-through',
+            os.path.join(output_path, dataset['name']),
+            dataset['path']
+        ],
+        stderr=subprocess.STDOUT
+    ) 
