@@ -6,12 +6,20 @@ def dataset(name, path):
     return {'name': name, 'path': path}
 
 file_path = os.path.dirname(__file__)
+<<<<<<< HEAD
 dataset_size = 'reduce' #'origin'
 dataset_root = os.path.join(file_path, 'dataset', dataset_size)
 output_path = os.path.join(file_path, 'dataset', 'pack', dataset_size)
 
 datasets = [
     dataset('example', os.path.join(dataset_root, 'example')),
+=======
+dataset_root = os.path.join(file_path, 'dataset')
+output_path = os.path.join(dataset_root, 'pack')
+
+datasets = [
+    dataset('example', os.path.join(dataset_root, 'example_dataset')),
+>>>>>>> lab2
     dataset('train', os.path.join(dataset_root, 'train')),
     dataset('test', os.path.join(dataset_root, 'test'))
 ]
@@ -45,6 +53,7 @@ subprocess.check_call(
 )
 
 #main dataset preparation
+<<<<<<< HEAD
 # for dataset in datasets[1:]:
 #     subprocess.check_call(
 #         [
@@ -68,3 +77,28 @@ subprocess.check_call(
 #         ],
 #         stderr=subprocess.STDOUT
 #     ) 
+=======
+for dataset in datasets[1:]:
+    subprocess.check_call(
+    [
+        'python', im2rec_path,
+        '--list',
+        '--recursive',
+        '--num-thread', '4',
+        os.path.join(output_path, dataset['name']),
+        dataset['path']
+    ],
+    stderr=subprocess.STDOUT
+)
+    #generate binary and .idx files
+subprocess.check_call(
+    [
+        'python', im2rec_path,
+        '--num-thread', '4',
+        '--pass-through',
+        os.path.join(output_path, dataset['name']),
+        dataset['path']
+    ],
+    stderr=subprocess.STDOUT
+) 
+>>>>>>> lab2
