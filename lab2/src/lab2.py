@@ -21,11 +21,11 @@ sys.stdout = Logger()
 file_path = os.path.dirname(__file__)
 dataset_size = 'reduce' #'origin'
 dataset_calsses_num = 14 #86
-learning_rate = 0.1
+learning_rate = 0.01
 print('learning_rate: ', learning_rate)
 epoch_num = 10
 print('epoch_num: ', epoch_num)
-pack_root = os.path.join(file_path, '..', 'dataset', 'pack', dataset_size)
+pack_root = os.path.join(file_path, '..', '..', 'dataset', 'pack', dataset_size)
 shape = (3, 432, 288)
 
 batch_size = 1
@@ -99,11 +99,9 @@ def FCNN(hidden_layers, dataset, default_activation='tanh'):
 
     return output
 
-dataset = dtstMain()
+dataset = dtstMNIST()
 net_shema = FCNN([
-        (100,),
-        (100,),
-        (100,)
+        (80,),
     ],
     dataset)
 net = mx.mod.Module(symbol = net_shema, context = mx.gpu())
