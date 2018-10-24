@@ -2,7 +2,9 @@ import mxnet as mx
 import os
 
 file_path = os.path.dirname(__file__)
-pack_root = os.path.join(file_path, '..', 'dataset', 'pack')
+dataset_size = 'reduce' #'origin'
+dataset_calsses_num = 14 #86
+pack_root = os.path.join(file_path, '..', 'dataset', 'pack', dataset_size)
 shape = (3, 432, 288)
 
 batch_size = 1
@@ -31,7 +33,7 @@ def dtstExample():
         data_shape = shape,
         batch_size = batch_size
     )
-    return dataset(train, test, 86)
+    return dataset(train, test, dataset_calsses_num)
 
 def dtstMain():
     train = mx.io.ImageRecordIter(
@@ -46,4 +48,4 @@ def dtstMain():
         data_shape = shape,
         batch_size = batch_size
     )
-    return dataset(train, test, 86)
+    return dataset(train, test, dataset_calsses_num)
