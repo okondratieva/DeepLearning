@@ -3,7 +3,7 @@ import shutil
 
 current = os.path.dirname(__file__)
 origin = os.path.join(current, 'dataset', 'origin')
-dest = os.path.join(current, 'dataset', 'reduce')
+dest = os.path.join(current, 'dataset', '432x288')
 
 train = os.path.join(origin, 'train')
 test = os.path.join(origin, 'test')

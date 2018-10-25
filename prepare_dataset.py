@@ -19,56 +19,69 @@ dataset_types = [
 for size in os.listdir(dataset_root):
     if str(size) != 'pack' and str(size) != 'origin':
         name = dataset_types[0] + '_' + size
-
         #example dataset preparation
             #generate .lst file
-        subprocess.check_call(
-            [
-                'python', im2rec_path,
-                '--list',
-                '--recursive',
-                '--num-thread', '4',
-                '--train-ratio', '0.8',
-                os.path.join(output_path, name),
-                os.path.join(dataset_root, size, dataset_types[0])
-            ],
-            stderr=subprocess.STDOUT
-        )
-            #generate binary and .idx files
-        subprocess.check_call(
-            [
-                'python', im2rec_path,
-                '--num-thread', '4',
-                '--pass-through',
-                os.path.join(output_path, name),
-                os.path.join(dataset_root, size, dataset_types[0])
-            ],
-            stderr=subprocess.STDOUT
-        )
-
-        #main dataset preparation
-        for dataset_type in dataset_types[1:]:
-            name = dataset_type + '_' + size
-             #generate .lst file
+        if (not os.path.exists(os.path.join(output_path, name + '_train.lst'))
+            or
+            not os.path.exists(os.path.join(output_path, name + '_val.lst'))):
             subprocess.check_call(
                 [
                     'python', im2rec_path,
                     '--list',
                     '--recursive',
                     '--num-thread', '4',
+                    '--train-ratio', '0.8',
                     os.path.join(output_path, name),
-                os.path.join(dataset_root, size, dataset_type)
+                    os.path.join(dataset_root, size, dataset_types[0])
                 ],
                 stderr=subprocess.STDOUT
             )
             #generate binary and .idx files
+        if (not os.path.exists(os.path.join(output_path, name + '_train.rec'))
+            or
+            not os.path.exists(os.path.join(output_path, name + '_train.idx'))
+            or
+            not os.path.exists(os.path.join(output_path, name + '_val.rec'))
+            or
+            not os.path.exists(os.path.join(output_path, name + '_val.idx'))):
             subprocess.check_call(
                 [
                     'python', im2rec_path,
                     '--num-thread', '4',
                     '--pass-through',
                     os.path.join(output_path, name),
-                    os.path.join(dataset_root, size, dataset_type)
+                    os.path.join(dataset_root, size, dataset_types[0])
                 ],
                 stderr=subprocess.STDOUT
             )
+
+        #main dataset preparation
+        for dataset_type in dataset_types[1:]:
+            name = dataset_type + '_' + size
+             #generate .lst file
+            if not os.path.exists(os.path.join(output_path, name + '.lst')):
+                subprocess.check_call(
+                    [
+                        'python', im2rec_path,
+                        '--list',
+                        '--recursive',
+                        '--num-thread', '4',
+                        os.path.join(output_path, name),
+                    os.path.join(dataset_root, size, dataset_type)
+                    ],
+                    stderr=subprocess.STDOUT
+                )
+            #generate binary and .idx files
+            if (not os.path.exists(os.path.join(output_path, name + '.rec'))
+                or
+                not os.path.exists(os.path.join(output_path, name + '.idx'))):
+                subprocess.check_call(
+                    [
+                        'python', im2rec_path,
+                        '--num-thread', '4',
+                        '--pass-through',
+                        os.path.join(output_path, name),
+                        os.path.join(dataset_root, size, dataset_type)
+                    ],
+                    stderr=subprocess.STDOUT
+                )
