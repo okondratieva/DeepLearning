@@ -1,90 +1,50 @@
 import mxnet as mx
 import os
 import sys
+import logging
 
-name = 'test4'
+config = {
+    'name': 'name',
+    'dataset': 'mnist',
+    'size': (256, 256),
+    'batch_size': 1,
+    'learning_rate': 0.01,
+    'num_epoch': 10,
+    'net_config': [],
+    'default_activation': 'tanh'
+}
 
-class Logger(object):
-    def __init__(self):
-        self.terminal = sys.stdout
-        self.log = open(name + '.log', "a")
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+logger.addHandler(logging.FileHandler(config['name'] + '.log'))
+logger.addHandler(logging.StreamHandler())
 
-    def write(self, message):
-        self.terminal.write(message)
-        self.log.write(message)
-
-    def flush(self):
-        pass 
-
-sys.stdout = Logger()
+for key in config:
+    logger.info('{}: {}'.format(key, config[key]))
 
 file_path = os.path.dirname(__file__)
-dataset_size = 'reduce' #'origin'
-dataset_calsses_num = 14 #86
-learning_rate = 0.01
-print('learning_rate: ', learning_rate)
-epoch_num = 10
-print('epoch_num: ', epoch_num)
-pack_root = os.path.join(file_path, '..', '..', 'dataset', 'pack', dataset_size)
-shape = (3, 432, 288)
+project_path = os.path.join(file_path, '..', '..')
 
-batch_size = 1
-print('batch_size: ', batch_size)
+sys.path.append(project_path)
+from load_dataset import *
 
-def dataset(train, test, classes_num):
-    return {'train':train, 'test':test, 'classes_num':classes_num}
+if config['dataset'] == 'mnist':
+    dataset = dtstMNIST(config['size'], config['batch_size'])
+elif config['dataset'] == 'example':
+    dataset = dtstExample(config['size'], config['batch_size'])
+elif config['dataset'] == 'main':
+    dataset = dtstMain(config['size'], config['batch_size'])
+else:
+    logger.error('unrecognized dataset')
+    exit()
 
-def dtstMNIST():
-    mnist = mx.test_utils.get_mnist()
-    print('dataset: ', 'MNIST')
-    return dataset(
-        mx.io.NDArrayIter(mnist['train_data'], mnist['train_label'], batch_size, shuffle=True),
-        mx.io.NDArrayIter(mnist['test_data'], mnist['test_label'], batch_size),
-        10
-    )
-
-def dtstExample():
-    train = mx.io.ImageRecordIter(
-        path_imgrec = os.path.join(pack_root, 'example_train.rec'),
-        path_imgidx = os.path.join(pack_root, 'example_train.idx'),
-        data_shape = shape,
-        batch_size = batch_size,
-        shuffle = True
-    )
-    test = mx.io.ImageRecordIter(
-        path_imgrec = os.path.join(pack_root, 'example_val.rec'),
-        path_imgidx = os.path.join(pack_root, 'example_val.idx'),
-        data_shape = shape,
-        batch_size = batch_size
-    )
-    print('dataset: ', dataset_size, ' example')
-    return dataset(train, test, dataset_calsses_num)
-
-def dtstMain():
-    train = mx.io.ImageRecordIter(
-        path_imgrec = os.path.join(pack_root, 'train.rec'),
-        path_imgidx = os.path.join(pack_root, 'train.idx'),
-        data_shape = shape,
-        batch_size = batch_size,
-        shuffle = True
-    )
-    test = mx.io.ImageRecordIter(
-        path_imgrec = os.path.join(pack_root, 'test.rec'),
-        path_imgidx = os.path.join(pack_root, 'test.idx'),
-        data_shape = shape,
-        batch_size = batch_size
-    )
-    print('dataset: ', dataset_size, ' main')
-    return dataset(train, test, dataset_calsses_num)
-
-def FCNN(hidden_layers, dataset, default_activation='tanh'):
+def FCNN():
     _hidden_layers = []
-    for layer in hidden_layers:
+    for layer in config['net_config']:
         if len(layer) == 1:
-            _hidden_layers.append((layer[0], default_activation))
+            _hidden_layers.append((layer[0], config['default_activation']))
         else:
             _hidden_layers.append((layer[0], layer[1]))
-    print('hidden layers conf: ',_hidden_layers)
 
     input = mx.sym.var('data')
     input = mx.sym.flatten(data=input)
@@ -99,28 +59,21 @@ def FCNN(hidden_layers, dataset, default_activation='tanh'):
 
     return output
 
-dataset = dtstMNIST()
-net_shema = FCNN([
-        (80,),
-    ],
-    dataset)
-net = mx.mod.Module(symbol = net_shema, context = mx.gpu())
 
-import logging
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.FileHandler(name + '.log'))
-logger.addHandler(logging.StreamHandler())
+net = mx.mod.Module(symbol = FCNN(), context = mx.gpu())
 
 net.fit(
     dataset['train'],
     eval_data = dataset['test'],
     optimizer = 'sgd',
-    optimizer_params = {'learning_rate':learning_rate},
+    optimizer_params = {'learning_rate':config['learning_rate']},
     initializer = mx.initializer.Xavier(),
     eval_metric = 'acc',
-    batch_end_callback = mx.callback.Speedometer(batch_size, 100),
-    num_epoch = epoch_num
+    batch_end_callback = mx.callback.Speedometer(config['batch_size'], 100),
+    num_epoch = config['num_epoch']
 )
 
-net.save_params(name + '.net')
+for key in config:
+    logger.info('{}: {}'.format(key, config[key]))
+
+net.save_params(config['name'] + '.net')
