@@ -60,9 +60,14 @@ def FCNN():
     return output
 
 
-net = mx.mod.Module(symbol = FCNN(), context = mx.gpu())
+network= FCNN()
 
-net.fit(
+image = mx.viz.plot_network(network, save_format='png')
+image.render(config['name'])
+
+model = mx.mod.Module(symbol = network, context = mx.gpu())
+
+model.fit(
     dataset['train'],
     eval_data = dataset['test'],
     optimizer = 'sgd',
@@ -76,4 +81,4 @@ net.fit(
 for key in config:
     logger.info('{}: {}'.format(key, config[key]))
 
-net.save_params(config['name'] + '.net')
+# net.save_params(config['name'] + '.net')
