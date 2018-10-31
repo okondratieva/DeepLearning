@@ -7,7 +7,11 @@ input_path = os.path.join(file_path, 'dataset', '432x288')
 sizes = [
     (174, 174),
     (206, 206),
-    (256, 256)
+    (256, 256),
+    (128, 128),
+    (100, 100),
+    (210, 140),
+    (108, 72)
 ]
 
 for size in sizes:
