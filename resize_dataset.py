@@ -28,5 +28,5 @@ for size in sizes:
                     img_path = os.path.join(category_path, img)
                     img_output_path = os.path.join(category_output_path, img)
                     image = cv2.imread(img_path)
-                    image = cv2.resize(image, size, interpolation = cv2.INTER_CUBIC)
+                    image = cv2.resize(image, (size[1], size[0]), interpolation = cv2.INTER_CUBIC)
                     print(cv2.imwrite(img_output_path, image), ' ', size, ' ', img_output_path)
