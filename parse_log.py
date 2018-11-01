@@ -8,30 +8,27 @@ def parse_log(log, output_name):
     csv_writer = csv.writer(_csv, delimiter=';')
 
     statistic = []
+    tmp = [0, 0, 0, 0]
     config_done = False
     for line in _log:
         result = re.match('(.{0,20})\: (.*)', line)
-        tmp = [0, 0, 0, 0]
         if result and not config_done:
             csv_writer.writerow([result.group(1), result.group(2)])
-            print([result.group(1), result.group(2)])
         result = re.match('.*Train-accuracy=(.*)', line)
         if result:
             config_done = True
             tmp[0] += 1
             tmp[1] = result.group(1)
-            print(result.group(1))
         result = re.match('.*Validation-accuracy=(.*)', line)
         if result:
             config_done = True
             tmp[2] = result.group(1)
-            print(result.group(1))
-            statistic.append(tmp)
+            statistic.append(tmp.copy())
+            tmp[1:] = [0, 0, 0]
         result = re.match('.*Time cost=(.*)', line)
         if result:
             config_done = True
             tmp[3] = result.group(1)
-            print(result.group(1))
     _log.close()
     csv_writer.writerow(['epoch', 'train', 'test', 'time'])
 
@@ -54,5 +51,3 @@ def parse_log(log, output_name):
     _csv.close()
 
 parse_log('test9.log', 'test9')
-            
-        
