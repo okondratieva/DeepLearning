@@ -1,6 +1,10 @@
+*
+!*/
+!*.*
 dataset
 *.log
 *.gz
 *.net
 *.png
+*.csv
 __pycache__
