@@ -39,7 +39,8 @@ def fit(network, *, name, dataset, batch_size, learning_rate, num_epoch, size = 
 
     logger.info('{}: {}'.format('name', config.name))
     logger.info('{}: {}'.format('dataset', config.dataset))
-    logger.info('{}: ({}, {})'.format('size', config.size[0], config.size[1]))
+    if config.dataset != 'mnist':
+        logger.info('{}: ({}, {})'.format('size', config.size[0], config.size[1]))
     logger.info('{}: {}'.format('batch_size', config.batch_size))
     logger.info('{}: {}'.format('learning rate', config.learning_rate))
     logger.info('{}: {}'.format('num epoch', config.num_epoch))
