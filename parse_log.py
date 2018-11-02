@@ -49,5 +49,3 @@ def parse_log(log, output_name):
     csv_writer.writerow(['max epoch', max_train_epoch, max_test_epoch])
 
     _csv.close()
-
-parse_log('test9.log', 'test9')
