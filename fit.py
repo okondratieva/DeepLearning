@@ -30,9 +30,12 @@ def fit(network, *, name, dataset, batch_size, learning_rate, num_epoch, size = 
 
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
+    for handler in logger.handlers[:]:
+        handler.flush()
+        logger.removeHandler(handler)
     logger.addHandler(logging.StreamHandler())
     if not config.no_log and save_log:
-        logger.addHandler(logging.FileHandler(config.name + '.log')
+        logger.addHandler(logging.FileHandler(config.name + '.log', mode = 'w'))
 
     logger.info('{}: {}'.format('name', config.name))
     logger.info('{}: {}'.format('dataset', config.dataset))
