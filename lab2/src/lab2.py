@@ -1,84 +1,29 @@
 import mxnet as mx
 import os
 import sys
-import logging
+
+project_path = os.path.dirname(__file__)
+project_path = os.path.join(project_path, '..', '..')
+sys.path.append(project_path)
+from fit import *
+from blocks import *
 
 config = {
-    'name': 'name',
-    'dataset': 'mnist',
-    'size': (256, 256),
-    'batch_size': 1,
-    'learning_rate': 0.01,
-    'num_epoch': 10,
-    'net_config': [],
-    'default_activation': 'tanh'
+    'dataset': 'main',
+    'batch_size': 10,
+    'learning_rate': 0.0001,
+    'num_epoch': 60,
 }
 
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.FileHandler(config['name'] + '.log'))
-logger.addHandler(logging.StreamHandler())
+networks = [
+    {'size': (108, 72), 'network': FullyConnected([(2300,), (1150,), (575,), (288,), (144,), (72,), (36,)], default_activation = 'tanh')},
+    {'size': (108, 72), 'network': FullyConnected([(2300,), (1150,), (575,), (288,), (144,), (72,), (36,)], default_activation = 'relu')},
+    {'size': (108, 72), 'network': FullyConnected([(11600,), (5800,), (2900,), (1450,), (720,), (360,), (180,), (90,), (45,), (22,)], default_activation = 'relu')},
+    {'size': (108, 72), 'network': FullyConnected([(2300,), (230,), (23,)], default_activation = 'relu')},
+    {'size': (210, 140), 'network': FullyConnected([(8820,), (4410,), (2200,), (1100,), (550,), (270,), (135,), (68,), (34,)], default_activation = 'relu')}
+]
 
-for key in config:
-    logger.info('{}: {}'.format(key, config[key]))
-
-file_path = os.path.dirname(__file__)
-project_path = os.path.join(file_path, '..', '..')
-
-sys.path.append(project_path)
-from load_dataset import *
-
-if config['dataset'] == 'mnist':
-    dataset = dtstMNIST(config['size'], config['batch_size'])
-elif config['dataset'] == 'example':
-    dataset = dtstExample(config['size'], config['batch_size'])
-elif config['dataset'] == 'main':
-    dataset = dtstMain(config['size'], config['batch_size'])
-else:
-    logger.error('unrecognized dataset')
-    exit()
-
-def FCNN():
-    _hidden_layers = []
-    for layer in config['net_config']:
-        if len(layer) == 1:
-            _hidden_layers.append((layer[0], config['default_activation']))
-        else:
-            _hidden_layers.append((layer[0], layer[1]))
-
-    input = mx.sym.var('data')
-    input = mx.sym.flatten(data=input)
-
-    fc = input
-    for layer in _hidden_layers:
-        fc = mx.sym.FullyConnected(data = fc, num_hidden = layer[0])
-        fc = mx.sym.Activation(data = fc, act_type = layer[1])
-
-    output = mx.sym.FullyConnected(data = fc, num_hidden = dataset['classes_num'])
-    output = mx.sym.SoftmaxOutput(data = output, name = 'softmax')
-
-    return output
-
-
-network= FCNN()
-
-image = mx.viz.plot_network(network, save_format='png')
-image.render(config['name'])
-
-model = mx.mod.Module(symbol = network, context = mx.gpu())
-
-model.fit(
-    dataset['train'],
-    eval_data = dataset['test'],
-    optimizer = 'sgd',
-    optimizer_params = {'learning_rate':config['learning_rate']},
-    initializer = mx.initializer.Xavier(),
-    eval_metric = 'acc',
-    batch_end_callback = mx.callback.Speedometer(config['batch_size'], 100),
-    num_epoch = config['num_epoch']
-)
-
-for key in config:
-    logger.info('{}: {}'.format(key, config[key]))
-
-# net.save_params(config['name'] + '.net')
+counter = 0
+for network in networks:
+    fit(network, name = 'fcnn' + str(counter), **config, **network)
+    counter += 1
