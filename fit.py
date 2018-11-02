@@ -60,7 +60,9 @@ def fit(network, *, name, dataset, batch_size, learning_rate, num_epoch, size = 
     _network = mx.sym.SoftmaxOutput(data = _network, name = 'softmax')
 
     if not config.no_image and save_image:
-        mx.viz.plot_network(_network, save_format='png').render(config.name)
+        mx.viz.plot_network(_network, save_format='png',
+            shape={'data':_dataset['test'].provide_data[0].shape},
+            node_attrs={'shape':'rect','fixedsize':'false'}).render(config.name)
 
     model = mx.mod.Module(symbol = network, context = mx.gpu())
 
