@@ -64,7 +64,7 @@ def fit(network, *, name, dataset, batch_size, learning_rate, num_epoch, size = 
             shape={'data':_dataset['test'].provide_data[0].shape},
             node_attrs={'shape':'rect','fixedsize':'false'}).render(config.name)
 
-    model = mx.mod.Module(symbol = network, context = mx.gpu())
+    model = mx.mod.Module(symbol = _network, context = mx.gpu())
 
     if not config.no_train and train:
         model.fit(
