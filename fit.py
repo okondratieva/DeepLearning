@@ -7,10 +7,11 @@ import mxnet as mx
 import sys
 
 
-def fit(network, *, name, dataset, size, batch_size, learning_rate, num_epoch, save_log = True, save_image = True, save_network = False):
+def fit(network, *, name, dataset, batch_size, learning_rate, num_epoch, size = (210, 140), train = True, save_log = True, save_image = True, save_network = False):
     if len(sys.argv) > 1:
         save_log = True
         save_image = True
+        train = True
         save_network = False
 
     parser = argparse.ArgumentParser()
@@ -22,6 +23,7 @@ def fit(network, *, name, dataset, size, batch_size, learning_rate, num_epoch, s
     parser.add_argument('-ne', '--num-epoch', type = int, default = num_epoch, help = 'number of epoch')
     parser.add_argument('--no-log', action = 'store_true', help = 'do not save the log file')
     parser.add_argument('--no-image', action = 'store_true', help = 'do not save the network\'s architecture in image')
+    parser.add_argument('--no-train', action = 'store_true', help = 'do not train the network')
     parser.add_argument('--save-net', action = 'store_true', help = 'save result of traning to file')
 
     config = parser.parse_args()
@@ -58,19 +60,20 @@ def fit(network, *, name, dataset, size, batch_size, learning_rate, num_epoch, s
 
     model = mx.mod.Module(symbol = network, context = mx.gpu())
 
-    model.fit(
-        _dataset['train'],
-        eval_data = _dataset['test'],
-        optimizer = 'sgd',
-        optimizer_params = {'learning_rate':config.learning_rate},
-        initializer = mx.initializer.Xavier(),
-        eval_metric = 'acc',
-        batch_end_callback = mx.callback.Speedometer(config.batch_size, 100),
-        num_epoch = config.num_epoch
-    )
+    if not config.no_train and train:
+        model.fit(
+            _dataset['train'],
+            eval_data = _dataset['test'],
+            optimizer = 'sgd',
+            optimizer_params = {'learning_rate':config.learning_rate},
+            initializer = mx.initializer.Xavier(),
+            eval_metric = 'acc',
+            batch_end_callback = mx.callback.Speedometer(config.batch_size, 100),
+            num_epoch = config.num_epoch
+        )
 
     if not config.no_log and save_log:
         parse_log(config.name + '.log', config.name)
     
-    if config.save_net or save_network:
+    if (config.save_net or save_network) and (not config.no_train and train):
         model.save_params(config.name + '.net')
