@@ -4,7 +4,7 @@ def FullyConnected(config, input = None, default_activation = 'relu'):
     layers = []
     for layer in config:
         if len(layer) == 1:
-            layers.append((layer[0], config['default_activation']))
+            layers.append((layer[0], default_activation))
         else:
             layers.append((layer[0], layer[1]))
 

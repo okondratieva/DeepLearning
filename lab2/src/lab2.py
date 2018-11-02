@@ -23,7 +23,7 @@ networks = [
     {'size': (210, 140), 'network': FullyConnected([(8820,), (4410,), (2200,), (1100,), (550,), (270,), (135,), (68,), (34,)], default_activation = 'relu')}
 ]
 
-counter = 0
+counter = 1
 for network in networks:
-    fit(network, name = 'fcnn' + str(counter), **config, **network)
+    fit(name = 'fcnn' + str(counter), **config, **network)
     counter += 1
