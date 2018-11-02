@@ -1,6 +1,6 @@
 import mxnet as mx
 
-def FullyConnected(input, config, default_activation = 'relu'):
+def FullyConnected(config, input = None, default_activation = 'relu'):
     layers = []
     for layer in config:
         if len(layer) == 1:
@@ -8,6 +8,8 @@ def FullyConnected(input, config, default_activation = 'relu'):
         else:
             layers.append((layer[0], layer[1]))
 
+    if input is None:
+        input = mx.sym.var('data')
     output = mx.sym.flatten(data=input)
 
     for layer in layers:
