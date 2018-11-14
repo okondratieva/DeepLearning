@@ -7,7 +7,7 @@ import mxnet as mx
 import sys
 
 
-def fit(network, *, name, dataset, batch_size, learning_rate, num_epoch, size = (210, 140), train = True, save_log = True, save_image = True, save_network = False):
+def fit(network, *, name, dataset, batch_size, learning_rate, num_epoch, size = (210, 140), train = True, save_log = True, save_image = True, save_network = False, save_model = True):
     if len(sys.argv) > 1:
         save_log = True
         save_image = True
@@ -24,6 +24,7 @@ def fit(network, *, name, dataset, batch_size, learning_rate, num_epoch, size = 
     parser.add_argument('--no-log', action = 'store_true', help = 'do not save the log file')
     parser.add_argument('--no-image', action = 'store_true', help = 'do not save the network\'s architecture in image')
     parser.add_argument('--no-train', action = 'store_true', help = 'do not train the network')
+    parser.add_argument('--no-model', action = 'store_true', help = 'do not save network schema')
     parser.add_argument('--save-net', action = 'store_true', help = 'save result of traning to file')
 
     config = parser.parse_args()
@@ -58,6 +59,9 @@ def fit(network, *, name, dataset, batch_size, learning_rate, num_epoch, size = 
     _network = mx.sym.flatten(data=network)
     _network = mx.sym.FullyConnected(data = _network, num_hidden = _dataset['classes_num'])
     _network = mx.sym.SoftmaxOutput(data = _network, name = 'softmax')
+
+    if not config.no_model and save_model:
+        _network.save(config.name + '.json')
 
     if not config.no_image and save_image:
         mx.viz.plot_network(_network, save_format='png',
