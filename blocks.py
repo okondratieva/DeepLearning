@@ -17,3 +17,18 @@ def FullyConnected(config, input = None, default_activation = 'relu'):
         output = mx.sym.Activation(data = output, act_type = layer[1])
 
     return output
+
+def Convolution(num, conv_size = 3, conv_stride = 1, pool_size = 2, pool_stride = 2, input = None):
+    if input is None:
+        input = mx.sym.var('data')
+    output = mx.sym.Convolution(data = input,
+        kernel = (conv_size, conv_size),
+        stride = (conv_stride, conv_stride),
+        num_filter = num,
+        pad = (conv_size // 2, conv_size // 2))
+    output = mx.sym.Activation(data = output, act_type = 'relu')
+    output = mx.sym.Pooling(data = output,
+        pool_type = 'max',
+        kernel = (pool_size, pool_size),
+        stride = (pool_stride, pool_stride))
+    return output
