@@ -61,7 +61,11 @@ def fit(network, *, name, dataset, batch_size, learning_rate, num_epoch, size = 
     _network = mx.sym.SoftmaxOutput(data = _network, name = 'softmax')
 
     if not config.no_model and save_model:
+<<<<<<< HEAD
         _network.save(config.name + '.json')
+=======
+        _network.save(config.name)
+>>>>>>> add saving net schema to file
 
     if not config.no_image and save_image:
         mx.viz.plot_network(_network, save_format='png',
