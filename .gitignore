@@ -8,4 +8,5 @@ dataset
 *.png
 *.csv
 *.json
+*.params
 __pycache__
