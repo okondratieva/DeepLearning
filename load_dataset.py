@@ -49,3 +49,20 @@ def dtstMain(shape, batch_size):
         batch_size = batch_size
     )
     return dataset(train, test, 14)
+
+def dtstMainB(shape, batch_size):
+    size = str(shape[0]) + 'x' + str(shape[1]) + 'B'
+    train = mx.io.ImageRecordIter(
+        path_imgrec = os.path.join(pack_path, 'train_{}.rec'.format(size)),
+        path_imgidx = os.path.join(pack_path, 'train_{}.idx'.format(size)),
+        data_shape = (3, shape[0], shape[1]),
+        batch_size = batch_size,
+        shuffle = True
+    )
+    test = mx.io.ImageRecordIter(
+        path_imgrec = os.path.join(pack_path, 'test_{}.rec'.format(size)),
+        path_imgidx = os.path.join(pack_path, 'test_{}.idx'.format(size)),
+        data_shape = (3, shape[0], shape[1]),
+        batch_size = batch_size
+    )
+    return dataset(train, test, 14)
