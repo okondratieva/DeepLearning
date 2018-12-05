@@ -7,6 +7,11 @@ import mxnet as mx
 import sys
 
 
+def save_image(symbol, name, shape):
+    mx.viz.plot_network(symbol, save_format='png',
+            shape={'data':shape},
+            node_attrs={'shape':'rect','fixedsize':'false'}).render(name)
+
 def fit(network, *, name, dataset, batch_size, learning_rate, num_epoch, size = (210, 140), train = True, save_log = True, save_image = True, save_network = False, save_model = True):
     if len(sys.argv) > 1:
         save_log = True
@@ -64,9 +69,7 @@ def fit(network, *, name, dataset, batch_size, learning_rate, num_epoch, size = 
         _network.save(config.name + '.json')
 
     if not config.no_image and save_image:
-        mx.viz.plot_network(_network, save_format='png',
-            shape={'data':_dataset['test'].provide_data[0].shape},
-            node_attrs={'shape':'rect','fixedsize':'false'}).render(config.name)
+        save_image(_network, config.name, _dataset['test'].provide_data[0].shape)
 
     model = mx.mod.Module(symbol = _network, context = mx.gpu())
 
