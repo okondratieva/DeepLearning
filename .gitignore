@@ -1,4 +1,12 @@
+*
+!*/
+!*.*
 dataset
 *.log
 *.gz
 *.net
+*.png
+*.csv
+*.json
+*.params
+__pycache__
