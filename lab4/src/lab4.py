@@ -19,11 +19,12 @@ config = {
 }
 
 class AutoencoderIter:
-    def __init__(self, iterator, size):
-        self._iterator = iterator
-        self._batch_size = iterator.provide_label[0][1][0]
-        self._size = size
-        self._labels = [mx.nd.zeros((self._batch_size, self._size))]
+    def __init__(self, dataset, symbol, arg_params):
+        self._dataset = dataset
+        self._symbol = symbol
+        self._module = mx.mod.Module(self._symbol, context=mx.gpu())
+        self._module.bind(self._dataset.provide_data)
+        self._module.init_params(arg_params=arg_params, aux_params={}, allow_missing=True, force_init=True)
 
     def __iter__(self):
         return self
@@ -32,54 +33,54 @@ class AutoencoderIter:
         return self.next()
 
     def next(self):
-        return mx.io.DataBatch(self._iterator.next().data, self._labels)
+        self._module.forward(self._dataset.next())
+        output = self._module.get_outputs()
+        return mx.io.DataBatch(output, output)
 
     def reset(self):
-        self._iterator.reset()
+        self._dataset.reset()
     
     @property
     def provide_data(self):
-        return self._iterator.provide_data
+        return [mx.io.DataDesc('data', self._symbol.infer_shape(data=dataset['train'].provide_data[0][1])[1][0], np.float32)]
 
     @property
     def provide_label(self):
-        return [mx.io.DataDesc('autoencoder_label', (self._batch_size, self._size), np.float32)]
+        return [mx.io.DataDesc('autoencoder_label', self._symbol.infer_shape(data=dataset['train'].provide_data[0][1])[1][0], np.float32)]
 
 
-def addLayer(network, num, dataset, arg_params = {}, name = None):
+def addLayer(data, network, num, dataset, arg_params = {}, name = None):
     logger = logging.getLogger()
 
     logger.info('add: {}'.format(num))
 
-    output = mx.sym.FullyConnected(data = network, num_hidden = num, name = 'fc' + str(num))
+    output = mx.sym.FullyConnected(data = data, num_hidden = num, name = 'fc' + str(num))
     output = mx.sym.Activation(data = output, act_type = 'relu')
 
     decoder_size = network.infer_shape(data = (1,) + (3,) + config['size'])[1][0][1]
     autoencoder = mx.sym.FullyConnected(data = output, num_hidden = decoder_size, name = 'autoencoder_fc')
     autoencoder = mx.sym.Activation(data = autoencoder, act_type = 'relu', name = 'autoencoder_act')
 
-    autoencoder = network - autoencoder
-    autoencoder = mx.sym.square(autoencoder)
-
     labels = mx.sym.var('autoencoder_label')
 
-    autoencoder = mx.sym.MAERegressionOutput(autoencoder, labels)
+    autoencoder = mx.sym.LinearRegressionOutput(autoencoder, labels)
 
     if name is None:
         name = 'autoencoder' + str(num)
 
-    save_image(autoencoder, name, (1,) + (3,) + config['size'])
+    _dataset = AutoencoderIter(dataset, network, arg_params)
+    if num == 2300:
+        save_image(autoencoder, name, dataset.provide_data[0][1])
+    else:
+        save_image(autoencoder, name, _dataset.provide_data[0][1])
 
-    _dataset = AutoencoderIter(dataset, decoder_size)
-    print(_dataset.provide_label)
-
-    module = mx.mod.Module(symbol = autoencoder, context = mx.gpu(), label_names=['autoencoder_label'], fixed_param_names = arg_params.keys())
+    module = mx.mod.Module(symbol = autoencoder, context = mx.gpu(), label_names=['autoencoder_label'])
     logger.info("learn autoencoder: {}".format(num))
     module.fit(
         _dataset,
         optimizer = 'sgd',
         optimizer_params = {'learning_rate':config['learning_rate'] * 10},
-        eval_metric='mae',
+        eval_metric='mse',
         arg_params=arg_params,
         aux_params={},
         allow_missing=True,
@@ -87,17 +88,20 @@ def addLayer(network, num, dataset, arg_params = {}, name = None):
         batch_end_callback = mx.callback.Speedometer(config['batch_size'], 100),
         num_epoch = config['num_epoch'] // 4)
 
-    arg_params = module.get_params()[0]
+    arg_params = dict(arg_params, **{'final_' + k:module.get_params()[0][k] for k in module.get_params()[0] if 'autoencoder' not in k})
     
-    return output, dict({k:arg_params[k] for k in arg_params if 'autoencoder' not in k})
+    output = mx.sym.FullyConnected(data = network, num_hidden = num, name = 'final_fc' + str(num))
+    output = mx.sym.Activation(data = output, act_type = 'relu')
+    return output, arg_params
 
 def pretrainFullyConnected(config, dataset):
-    output = mx.sym.var('data')
-    output = mx.sym.flatten(data = output, name = 'flatten')
+    data = mx.sym.var('data')
+    data = mx.sym.flatten(data = data, name = 'flatten')
+    output = data
     arg_params = {}
 
     for num in config:
-        output, arg_params = addLayer(output, num, dataset, arg_params)
+        output, arg_params = addLayer(data, output, num, dataset, arg_params)
 
     output = mx.sym.FullyConnected(data = output, num_hidden = 14)
     output = mx.sym.SoftmaxOutput(data = output, name = 'softmax')
@@ -112,9 +116,11 @@ for handler in logger.handlers[:]:
 logger.addHandler(logging.StreamHandler())
 logger.addHandler(logging.FileHandler('pretrained' + '.log', mode = 'w'))
 
-dataset = dtstMain(config['size'], 10)
+dataset = dtstMain(config['size'], config['batch_size'])
 
 network, arg_params = pretrainFullyConnected([2300, 1150, 575, 288, 144, 72, 36], dataset = dataset['train'])
+for name in arg_params:
+    print(name)
 
 save_image(network, 'pretrained', (1,) + (3,) + config['size'])
 
