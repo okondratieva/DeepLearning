@@ -44,46 +44,13 @@ def FixedParams():
 
 if __name__ == "__main__":
     config = {
+        'name': 'vgg16',
         'batch_size': 10,
         'learning_rate': 0.0001,
         'num_epoch': 22,
         'size': (432, 288)
     }
 
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-    for handler in logger.handlers[:]:
-        handler.flush()
-        logger.removeHandler(handler)
-    logger.addHandler(logging.StreamHandler())
-    logger.addHandler(logging.FileHandler('additional' + '.log', mode = 'w'))
+    network = mx.sym.load(config['name'] + '.json')
 
-    logger.info("batch_size: {}".format(config['batch_size']))
-    logger.info("learning_rate: {}".format(config['learning_rate']))
-    logger.info("num_epoch: {}".format(config['num_epoch']))
-
-    #additional network
-    dataset = dtstMainB(config['size'], config['batch_size'])
-
-    convolution = ConvolutionPart()
-    network = ClassificatorPart(input = convolution, name = 'classB')
-    save_image(network, 'additional', (1,) + (3,) + config['size'])
-    module = mx.mod.Module(symbol = network, context=mx.gpu())
-    module.fit(
-        dataset['train'],
-        eval_data = dataset['test'],
-        optimizer = 'sgd',
-        optimizer_params = {'learning_rate':config['learning_rate']},
-        initializer = mx.initializer.Xavier(),
-        eval_metric = 'acc',
-        batch_end_callback = mx.callback.Speedometer(config['batch_size'], 100),
-        num_epoch = config['num_epoch']
-    )
-
-    parse_log('additional' + '.log', 'additional')
-
-
-    arg_params, aux_params = module.get_params()
-    save_dict = {('arg:%s' % k) : v.as_in_context(mx.cpu()) for k, v in arg_params.items()}
-    save_dict.update({('aux:%s' % k) : v.as_in_context(mx.cpu()) for k, v in aux_params.items()})
-    mx.ndarray.save('additional.params', save_dict)
+    save_image(network, config['name'], (1, 3, 244, 244))
