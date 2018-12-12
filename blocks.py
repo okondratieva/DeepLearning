@@ -1,6 +1,6 @@
 import mxnet as mx
 
-def FullyConnected(config, input = None, default_activation = 'relu'):
+def FullyConnected(config, input = None, default_activation = 'relu', dropout = None):
     layers = []
     for layer in config:
         if len(layer) == 1:
@@ -15,6 +15,8 @@ def FullyConnected(config, input = None, default_activation = 'relu'):
     for layer in layers:
         output = mx.sym.FullyConnected(data = output, num_hidden = layer[0])
         output = mx.sym.Activation(data = output, act_type = layer[1])
+        if not (dropout is None):
+            output = mx.sym.Dropout(data = output, p = dropout)
 
     return output
 

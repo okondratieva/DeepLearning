@@ -12,7 +12,7 @@ config = {
     'dataset': 'main',
     'batch_size': 10,
     'learning_rate': 0.0001,
-    'num_epoch': 60,
+    'num_epoch': 120,
     'size': (432, 288)
 }
 
@@ -146,6 +146,17 @@ def cnn11():
     output = FullyConnected([(6220,), (622,)], input = output)
     return output
 
+def cnn12():
+    output = Convolution(64, conv_size=3)
+    output = Convolution(64, conv_size = 3, input=output)
+    output = Convolution(128, conv_size = 3, input=output)
+    output = Inseption(input = output, pooling = False)
+    output = Inseption(input = output, coeff = 2)
+    output = mx.sym.Convolution(data = output, kernel = (3, 3), stride = (1, 1), pad = (1, 1), num_filter = 128)
+    output = mx.sym.Activation(data = output, act_type = 'relu')
+    output = FullyConnected([(6220,), (622,)], input = output, dropout = 0.5)
+    return output
+
 networks = [
     cnn0(),
     cnn1(),
@@ -158,10 +169,11 @@ networks = [
     cnn8(),
     cnn9(),
     cnn10(),
-    cnn11()
+    cnn11(),
+    cnn12()
 ]
 
-counter = 0
+counter = 12
 for network in networks[counter:counter + 1]:
     fit(name = 'cnn' + str(counter), **config, network = network)
     counter += 1
