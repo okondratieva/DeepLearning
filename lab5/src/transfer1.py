@@ -12,9 +12,9 @@ from parse_log import *
 
 config = {
     'batch_size': 10,
-    'learning_rate': 0.0001,
-    'num_epoch': 23,
-    'size': (432, 288)
+    'learning_rate': 0.004,
+    'num_epoch': 120,
+    'size': (224, 224)
 }
 
 logger = logging.getLogger()
@@ -30,25 +30,25 @@ logger.info("num_epoch: {}".format(config['num_epoch']))
 
 #main network
 dataset = dtstMain(config['size'], config['batch_size'])
+# arg_params, aux_params = load_params()
 
-network = ConvolutionPart()
-network = ClassificatorPart(input = network, name = 'classA')
+network = symbol()
 save_image(network, 'transfer1', (1,) + (3,) + config['size'])
-module = mx.mod.Module(symbol = network, context=mx.gpu(), fixed_param_names = FixedParams())
+module = mx.mod.Module(symbol = network, context=mx.gpu())#, fixed_param_names = arg_params.keys())
 
-save_dict = mx.ndarray.load('additional.params')
-arg_params = {}
-aux_params = {}
-for k, value in save_dict.items():
-    arg_type, name = k.split(':', 1)
-    if arg_type == 'arg':
-        if 'classB' not in name:
-            arg_params[name] = value
-    elif arg_type == 'aux':
-        if 'classB' not in name:
-            aux_params[name] = value
-    else:
-        raise ValueError("Invalid param file " + 'additional.params')
+# module.fit(
+#     dataset['train'],
+#     optimizer = 'sgd',
+#     optimizer_params = {'learning_rate':config['learning_rate']},
+#     eval_metric='acc',
+#     eval_data=dataset['test'],
+#     arg_params=arg_params,
+#     aux_params=aux_params,
+#     allow_missing=True,
+#     initializer = mx.initializer.Xavier(),
+#     batch_end_callback = mx.callback.Speedometer(config['batch_size'], 100),
+#     num_epoch = config['num_epoch']
+# )
 
 module.fit(
     dataset['train'],
@@ -56,9 +56,6 @@ module.fit(
     optimizer_params = {'learning_rate':config['learning_rate']},
     eval_metric='acc',
     eval_data=dataset['test'],
-    arg_params=arg_params,
-    aux_params=aux_params,
-    allow_missing=True,
     initializer = mx.initializer.Xavier(),
     batch_end_callback = mx.callback.Speedometer(config['batch_size'], 100),
     num_epoch = config['num_epoch']

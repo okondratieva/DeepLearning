@@ -14,40 +14,21 @@ dst_train = os.path.join(dest, 'train')
 dst_test = os.path.join(dest, 'test')
 dst_example = os.path.join(dest, 'example')
 
-# favorites for original dataset
-# favorites = [
-#     'Aquaman v7',
-#     'Batgirl v4',
-#     'Batman v2',
-#     'Batwing',
-#     'Batwoman',
-#     'Catwoman v4',
-#     'Green Arrow',
-#     'Green Lantern',
-#     'Harley Quinn',
-#     'Nightwing v3',
-#     'Wonder Woman',
-#     'Red Lanterns',
-#     'Sinestro',
-#     'Supergirl v6'
-# ]
-
-# favorites for additional dataset
 favorites = [
-    'Justice League',
-    'Justice League 3000',
-    'Justice League 3001',
-    'Justice League Dark',
-    'Justice League International',
-    'Justice League of America',
-    'Justice League of America`s Vibe',
-    'Justice League United',
-    'Batman & Robin Eternal',
-    'Batman and Robin v2',
-    'Suicide Squad v4',
-    'DC Sneak Peek',
-    'Superman-Wonder Woman',
-    'Earth 2 - World\'s End'
+    'Aquaman v7',
+    'Batgirl v4',
+    'Batman v2',
+    'Batwing',
+    'Batwoman',
+    'Catwoman v4',
+    'Green Arrow',
+    'Green Lantern',
+    'Harley Quinn',
+    'Nightwing v3',
+    'Wonder Woman',
+    'Red Lanterns',
+    'Sinestro',
+    'Supergirl v6'
 ]
 
 total_train = 0
